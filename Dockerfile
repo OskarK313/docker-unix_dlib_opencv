@@ -6,7 +6,6 @@ MAINTAINER Oskar @ Cammy
 ENV PYTHONUNBUFFERED 1
 
 # Add cmake to image - required to install openCV and dlib
-
 RUN apt-get update
 RUN apt-get install -y --fix-missing \
     build-essential \
@@ -17,6 +16,7 @@ RUN apt-get install -y --fix-missing \
     curl \
     graphicsmagick \
     libgraphicsmagick1-dev \
+    libatlas-dev \
     libavcodec-dev \
     libavformat-dev \
     libgtk2.0-dev \
@@ -30,10 +30,6 @@ RUN apt-get install -y --fix-missing \
     software-properties-common \
     zip\
     qt5-default \
-    nasm \
-    dh-autoreconf \
-    openssl \
-    checkinstall \
     && apt-get clean && rm -rf /tmp/* /var/tmp/*
 
 RUN cd ~ && \
@@ -43,11 +39,10 @@ RUN cd ~ && \
     cd  dlib/ && \
     python3 setup.py install
 
-
 RUN wget https://cmake.org/files/v3.8/cmake-3.8.1.tar.gz && \
     tar xf cmake-3.8.1.tar.gz && \
     cd cmake-3.8.1 && \
-    apt-get install  && \
+    apt-get install openssl libssl-dev checkinstall && \
     ./configure && \
     make && \
     checkinstall && \
@@ -73,19 +68,12 @@ RUN mkdir -p ~/opencv cd ~/opencv && \
     make install && \
     ldconfig
 
-RUN wget https://launchpad.net/ubuntu/+archive/primary/+files/libjpeg-turbo_1.5.1.orig.tar.gz && \
+    RUN wget https://launchpad.net/ubuntu/+archive/primary/+files/libjpeg-turbo_1.5.1.orig.tar.gz && \
     tar xvf libjpeg-turbo_1.5.1.orig.tar.gz && \
     cd libjpeg-turbo-1.5.1/ && \
+    apt-get install -y nasm dh-autoreconf && \
     autoreconf -fiv && \
     mkdir build  && \
     cd build && \
     sh ../configure --prefix=/usr/libjpeg-turbo --mandir=/usr/share/man --with-jpeg8 --enable-static --docdir=/usr/share/doc/libjpeg-turbo-1.5.1 && \
     make install
-
-
-RUN apt-get --purge remove -y \
-    zip \
-    curl \
-    wget \
-    cmake \
-    python3-dev

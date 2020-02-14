@@ -1,14 +1,15 @@
 # Python lite
-FROM ubuntu:20.04
+FROM ubuntu:18.04
 MAINTAINER Oskar @ Cammy
 
 # Prevent unnecessary internal buffering
 ENV PYTHONUNBUFFERED 1
 
 # Add cmake to image - required to install openCV and dlib
-RUN apt-get update
-RUN apt-get install -y --fix-missing \
+RUN apt-get update && \
+    apt-get install -y  \
     build-essential \
+    nasm \
     cmake \
     gfortran \
     git \
@@ -28,25 +29,32 @@ RUN apt-get install -y --fix-missing \
     python3-numpy \
     python3-pip\
     software-properties-common \
-    zip\
+    unzip \
     qt5-default \
     && apt-get clean && rm -rf /tmp/* /var/tmp/*
-
-RUN cd ~ && \
-    mkdir -p dlib && \
-    pip3 install setuptools && \
-    git clone -b 'v19.19' --single-branch https://github.com/davisking/dlib.git dlib/ && \
-    cd  dlib/ && \
-    python3 setup.py install
 
 RUN wget https://cmake.org/files/v3.8/cmake-3.8.1.tar.gz && \
     tar xf cmake-3.8.1.tar.gz && \
     cd cmake-3.8.1 && \
-    apt-get install openssl libssl-dev checkinstall && \
+    apt-get install  -y openssl libssl-dev checkinstall && \
     ./configure && \
     make && \
     checkinstall && \
     make install
+
+
+RUN cd ~ && \
+    mkdir -p dlib && \
+    wget http://dlib.net/files/dlib-19.6.tar.bz2 && \
+    tar xvf dlib-19.6.tar.bz2 && \
+    cd dlib-19.6/ && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    cmake --build . --config Release && \
+    make install && \
+    ldconfig && \
+    cd ..
 
 RUN mkdir -p ~/opencv cd ~/opencv && \
     wget https://github.com/Itseez/opencv/archive/4.1.1.zip && \
@@ -68,10 +76,9 @@ RUN mkdir -p ~/opencv cd ~/opencv && \
     make install && \
     ldconfig
 
-    RUN wget https://launchpad.net/ubuntu/+archive/primary/+files/libjpeg-turbo_1.5.1.orig.tar.gz && \
+RUN wget https://launchpad.net/ubuntu/+archive/primary/+files/libjpeg-turbo_1.5.1.orig.tar.gz && \
     tar xvf libjpeg-turbo_1.5.1.orig.tar.gz && \
     cd libjpeg-turbo-1.5.1/ && \
-    apt-get install -y nasm dh-autoreconf && \
     autoreconf -fiv && \
     mkdir build  && \
     cd build && \

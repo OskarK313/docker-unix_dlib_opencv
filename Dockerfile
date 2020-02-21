@@ -27,7 +27,7 @@ RUN apt-get update && \
     pkg-config \
     python3-dev \
     python3-numpy \
-    python3-pip\
+    python-pip\
     software-properties-common \
     unzip \
     qt5-default \
@@ -84,3 +84,27 @@ RUN wget https://launchpad.net/ubuntu/+archive/primary/+files/libjpeg-turbo_1.5.
     cd build && \
     sh ../configure --prefix=/usr/libjpeg-turbo --mandir=/usr/share/man --with-jpeg8 --enable-static --docdir=/usr/share/doc/libjpeg-turbo-1.5.1 && \
     make install
+
+
+# Clean image
+RUN cd  .. && \
+    rm -rf \
+    OpenCV \
+    libjpeg-turbo-1.5.1 \
+    cmake-3.8.1.tar.gz \
+    libjpeg-turbo_1.5.1.orig.tar.gz \
+    cmake-3.8.1 \
+    libjpeg-turbo-1.5.1 && \
+    apt-get --purge remove -y \
+    cmake \
+    libgraphicsmagick1-dev \
+    libatlas-base-dev \
+    libavcodec-dev \
+    libavformat-dev \
+    libgtk2.0-dev \
+    libjpeg-dev \
+    liblapack-dev \
+    libswscale-dev \
+    software-properties-common \
+    build-essential && \
+    apt autoremove -y

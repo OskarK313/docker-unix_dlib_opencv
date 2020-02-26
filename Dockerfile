@@ -1,6 +1,6 @@
 # Python lite
-FROM ubuntu:18.04
-MAINTAINER Oskar @ Cammy
+FROM ubuntu:18.04 as BUILD 
+LABEL Oskar @ Cammy
 
 # Prevent unnecessary internal buffering
 ENV PYTHONUNBUFFERED 1
@@ -36,25 +36,10 @@ RUN apt-get update && \
 RUN wget https://cmake.org/files/v3.8/cmake-3.8.1.tar.gz && \
     tar xf cmake-3.8.1.tar.gz && \
     cd cmake-3.8.1 && \
-    apt-get install  -y openssl libssl-dev checkinstall && \
+    apt-get install  -y openssl libssl-dev && \
     ./configure && \
     make && \
-    checkinstall && \
     make install
-
-
-RUN cd ~ && \
-    mkdir -p dlib && \
-    wget http://dlib.net/files/dlib-19.6.tar.bz2 && \
-    tar xvf dlib-19.6.tar.bz2 && \
-    cd dlib-19.6/ && \
-    mkdir build && \
-    cd build && \
-    cmake .. && \
-    cmake --build . --config Release && \
-    make install && \
-    ldconfig && \
-    cd ..
 
 RUN mkdir -p ~/opencv cd ~/opencv && \
     wget https://github.com/Itseez/opencv/archive/4.1.1.zip && \
@@ -85,26 +70,33 @@ RUN wget https://launchpad.net/ubuntu/+archive/primary/+files/libjpeg-turbo_1.5.
     sh ../configure --prefix=/usr/libjpeg-turbo --mandir=/usr/share/man --with-jpeg8 --enable-static --docdir=/usr/share/doc/libjpeg-turbo-1.5.1 && \
     make install
 
+RUN apt-get update && apt-get install -y --fix-broken && apt-get install -y python3-pip
+RUN pip3 install --user dlib
+RUN ls /root/.local/lib
 
-# Clean image
-RUN cd  .. && \
-    rm -rf \
-    OpenCV \
-    libjpeg-turbo-1.5.1 \
-    cmake-3.8.1.tar.gz \
-    libjpeg-turbo_1.5.1.orig.tar.gz \
-    cmake-3.8.1 \
-    libjpeg-turbo-1.5.1 && \
-    apt-get --purge remove -y \
-    cmake \
-    libgraphicsmagick1-dev \
-    libatlas-base-dev \
+
+FROM ubuntu:18.04 as MADROX
+
+LABEL descrtiption="Madox run enviroment"
+
+RUN apt-get update && \
+    apt-get install -y \
+    python3-numpy \
+    libavcodec-dev \
     libavcodec-dev \
     libavformat-dev \
-    libgtk2.0-dev \
-    libjpeg-dev \
-    liblapack-dev \
     libswscale-dev \
-    software-properties-common \
-    build-essential && \
-    apt autoremove -y
+    libv4l-dev \
+    qt5-default \
+    python3-dev \
+    libatlas-base-dev
+
+COPY --from=BUILD /usr/local/include /usr/local/include
+COPY --from=BUILD /usr/local/lib /usr/local/lib 
+COPY --from=BUILD /usr/local/include/opencv4 /usr/local/include/opencv4
+COPY --from=BUILD /usr/libjpeg-turbo /usr/libjpeg-turbo
+
+COPY --from=BUILD /root/.local /root/.local
+
+
+
